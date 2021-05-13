@@ -1,40 +1,30 @@
 # Clase de servidor
 import socket                 
-import threading    
-
-CLIENTES = []
-
+import threading            
 
 class Cliente(threading.Thread):
     def __init__(self, conexion, direccion):                       
         super(Cliente, self).__init__()                      
         self.conexion = conexion          
-        self.direccion = direccion 
-
-    def difusion(self, datos):
-        for cliente in CLIENTES:
-            if cliente.conexion != self.conexion:
-                cliente.conexion.sendall(datos)                           
+        self.direccion = direccion                            
 
     def run(self):   
-        print('...conectado desde:',self.direccion) 
+        print('...conectado desde:', self.direccion) 
         while True:
-            datos=self.conexion.recv(1024)       
+            datos=self.conexion.recv(1024)           
             if not datos:
-                print('no hay datos adios...')
                 break
-            print(datos)
-            self.difusion(datos)
-             
-        print('...Desconectado cliente:',self.direccion) 
-        self.conexion.close()
+            print(datos.decode('utf-8'))
 
+        print('...Desconectado cliente:', self.direccion) 
+        self.conexion.close()
 
 class Servidor():
     def __init__(self, ip, puerto):
         self.ip = ip
         self.puerto = puerto
         self.servidor = None
+        self.clientes = []
 
     def crearSocket(self):
         self.servidor = socket.socket()
@@ -48,13 +38,15 @@ class Servidor():
             conexion, direccion = self.servidor.accept()
             cliente = Cliente(conexion, direccion)
             cliente.start()
-            CLIENTES.append(cliente)
+            self.clientes.append(cliente)
 
-        for t in CLIENTES:
+        for t in self.clientes:
             t.join()
 
         self.servidor.close() 
 
+
+    
 
 if __name__ == '__main__':
 
